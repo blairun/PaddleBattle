@@ -16,14 +16,17 @@
 
 package com.example.android.bluetoothchat;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -171,6 +174,35 @@ public class BluetoothChatFragment extends Fragment {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Send a message using content of the edit text widget
+
+                Vibrator vv = (Vibrator) getActivity().getSystemService(getContext().VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+//                vv.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                //deprecated in API 26
+//                vv.vibrate(50);
+
+
+                MediaPlayer hit = MediaPlayer.create(getActivity() ,R.raw.pong_hit);
+                hit.start();
+                vv.vibrate(25);
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                hit.release();
+
+                MediaPlayer bounce = MediaPlayer.create(getActivity() ,R.raw.pong_table);
+                bounce.start();
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                bounce.release();
+
                 View view = getView();
                 if (null != view) {
                     TextView textView = (TextView) view.findViewById(R.id.edit_text_out);
@@ -275,6 +307,7 @@ public class BluetoothChatFragment extends Fragment {
     /**
      * The Handler that gets information back from the BluetoothChatService
      */
+    @SuppressLint("HandlerLeak")
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -299,13 +332,32 @@ public class BluetoothChatFragment extends Fragment {
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    mConversationArrayAdapter.add("Me:  " + writeMessage);
+//                    mConversationArrayAdapter.add("Me:  " + writeMessage);
+                    mConversationArrayAdapter.add("Me: " + "Ping");
+
+
+
+                    mOutEditText.setText("Pong");
+                    MediaPlayer PaddleHit = MediaPlayer.create(getActivity() ,R.raw.pong_hit);
+                    PaddleHit.start();
+
+
+
                     break;
+
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+
+//                    try {
+//                        Thread.sleep(5000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+
+
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
